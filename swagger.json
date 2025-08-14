@@ -1,0 +1,940 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "QASD - Quality Assurance System Dashboard API",
+    "description": "Enterprise Quality Assurance and Document Management System API Documentation",
+    "version": "1.0.0",
+    "contact": {
+      "name": "QASD Development Team",
+      "email": "dev@qasd.company.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001/api",
+      "description": "Development server"
+    },
+    {
+      "url": "https://api.qasd.company.com/api",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "User ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "manager", "supervisor", "user"],
+            "description": "User role"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          }
+        }
+      },
+      "ProductionBatch": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Batch ID"
+          },
+          "number": {
+            "type": "string",
+            "description": "Batch number"
+          },
+          "product_id": {
+            "type": "integer",
+            "description": "Product ID"
+          },
+          "planned_quantity": {
+            "type": "number",
+            "description": "Planned quantity"
+          },
+          "actual_quantity": {
+            "type": "number",
+            "description": "Actual quantity produced"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["planned", "in_progress", "completed", "cancelled"],
+            "description": "Batch status"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End date"
+          }
+        }
+      },
+      "Equipment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Equipment ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Equipment name"
+          },
+          "code": {
+            "type": "string",
+            "description": "Equipment code"
+          },
+          "type": {
+            "type": "string",
+            "description": "Equipment type"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "maintenance", "inactive"],
+            "description": "Equipment status"
+          },
+          "capacity": {
+            "type": "number",
+            "description": "Equipment capacity"
+          },
+          "location": {
+            "type": "string",
+            "description": "Equipment location"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Validation errors"
+          }
+        }
+      },
+      "Success": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Success message"
+          },
+          "data": {
+            "type": "object",
+            "description": "Response data"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "User login",
+        "description": "Authenticate user and return JWT tokens",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "minLength": 3,
+                    "description": "Username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6,
+                    "description": "Password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/Success"},
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "user": {"$ref": "#/components/schemas/User"},
+                            "accessToken": {"type": "string"},
+                            "refreshToken": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "User registration",
+        "description": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "email", "password"],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 50,
+                    "pattern": "^[a-zA-Z0-9_]+$",
+                    "description": "Username"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6,
+                    "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)",
+                    "description": "Password (must contain uppercase, lowercase, and number)"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["admin", "manager", "supervisor", "user"],
+                    "description": "User role"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/Success"},
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "user": {"$ref": "#/components/schemas/User"}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          },
+          "409": {
+            "description": "User already exists",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Refresh access token",
+        "description": "Refresh access token using refresh token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["refreshToken"],
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "description": "Refresh token"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/Success"},
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "accessToken": {"type": "string"},
+                            "refreshToken": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid refresh token",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "User logout",
+        "description": "Logout user and invalidate tokens",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Logout successful",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Success"}
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get current user",
+        "description": "Get current authenticated user information",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "User information retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/Success"},
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "user": {"$ref": "#/components/schemas/User"}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/production/batches": {
+      "get": {
+        "tags": ["Production"],
+        "summary": "Get production batches",
+        "description": "Retrieve paginated list of production batches",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1},
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1, "maximum": 100},
+            "description": "Items per page"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {"type": "string"},
+            "description": "Search term"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["planned", "in_progress", "completed", "cancelled"]
+            },
+            "description": "Filter by status"
+          },
+          {
+            "name": "product_id",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1},
+            "description": "Filter by product ID"
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "schema": {"type": "string", "format": "date"},
+            "description": "Filter from date"
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "schema": {"type": "string", "format": "date"},
+            "description": "Filter to date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Production batches retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/Success"},
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "batches": {
+                              "type": "array",
+                              "items": {"$ref": "#/components/schemas/ProductionBatch"}
+                            },
+                            "pagination": {
+                              "type": "object",
+                              "properties": {
+                                "page": {"type": "integer"},
+                                "limit": {"type": "integer"},
+                                "total": {"type": "integer"},
+                                "totalPages": {"type": "integer"}
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Production"],
+        "summary": "Create production batch",
+        "description": "Create a new production batch",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["product_id", "planned_quantity", "start_date"],
+                "properties": {
+                  "product_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Product ID"
+                  },
+                  "planned_quantity": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "description": "Planned quantity"
+                  },
+                  "start_date": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Start date"
+                  },
+                  "expected_end_date": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Expected end date"
+                  },
+                  "equipment_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Equipment ID"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Notes"
+                  },
+                  "materials": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "material_id": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "quantity_required": {
+                          "type": "number",
+                          "minimum": 0.01
+                        }
+                      }
+                    },
+                    "description": "Required materials"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Production batch created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/Success"},
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "batch": {"$ref": "#/components/schemas/ProductionBatch"}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/production/batches/{id}": {
+      "get": {
+        "tags": ["Production"],
+        "summary": "Get production batch",
+        "description": "Get a specific production batch by ID",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer", "minimum": 1},
+            "description": "Batch ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Production batch retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/Success"},
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "batch": {"$ref": "#/components/schemas/ProductionBatch"}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Batch not found",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/production/equipment": {
+      "get": {
+        "tags": ["Production"],
+        "summary": "Get equipment list",
+        "description": "Retrieve paginated list of production equipment",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1},
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1, "maximum": 100},
+            "description": "Items per page"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {"type": "string"},
+            "description": "Search term"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["active", "maintenance", "inactive"]
+            },
+            "description": "Filter by status"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {"type": "string"},
+            "description": "Filter by equipment type"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Equipment list retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/Success"},
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "equipment": {
+                              "type": "array",
+                              "items": {"$ref": "#/components/schemas/Equipment"}
+                            },
+                            "pagination": {
+                              "type": "object",
+                              "properties": {
+                                "page": {"type": "integer"},
+                                "limit": {"type": "integer"},
+                                "total": {"type": "integer"},
+                                "totalPages": {"type": "integer"}
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Production"],
+        "summary": "Create equipment",
+        "description": "Create new production equipment",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "code", "type"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Equipment name"
+                  },
+                  "code": {
+                    "type": "string",
+                    "description": "Equipment code"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Equipment type"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Equipment description"
+                  },
+                  "capacity": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Equipment capacity"
+                  },
+                  "location": {
+                    "type": "string",
+                    "description": "Equipment location"
+                  },
+                  "purchase_date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Purchase date"
+                  },
+                  "purchase_cost": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Purchase cost"
+                  },
+                  "maintenance_schedule": {
+                    "type": "string",
+                    "description": "Maintenance schedule"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Equipment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/Success"},
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "equipment": {"$ref": "#/components/schemas/Equipment"}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization"
+    },
+    {
+      "name": "Production",
+      "description": "Production management operations"
+    },
+    {
+      "name": "HR",
+      "description": "Human resources management"
+    },
+    {
+      "name": "Inventory",
+      "description": "Inventory and stock management"
+    },
+    {
+      "name": "Safety",
+      "description": "Safety and compliance management"
+    },
+    {
+      "name": "Sales",
+      "description": "Sales and customer management"
+    },
+    {
+      "name": "Reports",
+      "description": "Reporting and analytics"
+    },
+    {
+      "name": "Settings",
+      "description": "System settings and configuration"
+    },
+    {
+      "name": "Uploads",
+      "description": "File upload and management"
+    }
+  ]
+}

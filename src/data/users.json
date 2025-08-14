@@ -1,0 +1,87 @@
+[
+  {
+    "id": "1",
+    "username": "admin",
+    "password": "admin123",
+    "name": "المدير العام",
+    "email": "admin@company.com",
+    "phone": "+966501234567",
+    "department": "الإدارة العامة",
+    "roles": ["super_admin"],
+    "customPermissions": [
+      "CREATE_USER",
+      "EDIT_USER",
+      "DELETE_USER",
+      "MANAGE_ROLES",
+      "VIEW_ALL_DATA",
+      "MANAGE_SYSTEM"
+    ],
+    "status": "نشط",
+    "notes": "المدير العام للنظام",
+    "avatar": null,
+    "lastLogin": "2024-01-15T10:30:00Z",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-15T10:30:00Z"
+  },
+  {
+    "id": "2",
+    "username": "supervisor",
+    "password": "sup123",
+    "name": "مشرف الإنتاج",
+    "email": "supervisor@company.com",
+    "phone": "+966501234568",
+    "department": "الإنتاج",
+    "roles": ["supervisor"],
+    "customPermissions": [
+      "VIEW_PRODUCTION",
+      "EDIT_PRODUCTION",
+      "VIEW_REPORTS"
+    ],
+    "status": "نشط",
+    "notes": "مشرف قسم الإنتاج",
+    "avatar": null,
+    "lastLogin": "2024-01-14T14:20:00Z",
+    "createdAt": "2024-01-02T00:00:00Z",
+    "updatedAt": "2024-01-14T14:20:00Z"
+  },
+  {
+    "id": "3",
+    "username": "inventory",
+    "password": "inv123",
+    "name": "مسؤول المخزون",
+    "email": "inventory@company.com",
+    "phone": "+966501234569",
+    "department": "المخزون",
+    "roles": ["manager"],
+    "customPermissions": [
+      "VIEW_INVENTORY",
+      "EDIT_INVENTORY",
+      "MANAGE_STOCK"
+    ],
+    "status": "نشط",
+    "notes": "مسؤول إدارة المخزون",
+    "avatar": null,
+    "lastLogin": "2024-01-13T09:15:00Z",
+    "createdAt": "2024-01-03T00:00:00Z",
+    "updatedAt": "2024-01-13T09:15:00Z"
+  },
+  {
+    "id": "4",
+    "username": "viewer",
+    "password": "view123",
+    "name": "مستخدم عادي",
+    "email": "viewer@company.com",
+    "phone": "+966501234570",
+    "department": "عام",
+    "roles": ["viewer"],
+    "customPermissions": [
+      "VIEW_BASIC_DATA"
+    ],
+    "status": "نشط",
+    "notes": "مستخدم عادي للعرض فقط",
+    "avatar": null,
+    "lastLogin": "2024-01-12T16:45:00Z",
+    "createdAt": "2024-01-04T00:00:00Z",
+    "updatedAt": "2024-01-12T16:45:00Z"
+  }
+]

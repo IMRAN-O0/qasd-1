@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QASD - تشخيص Service Worker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .cleanup-btn {
+            background: rgba(220, 38, 38, 0.3);
+            border-color: rgba(220, 38, 38, 0.5);
+        }
+        .cleanup-btn:hover {
+            background: rgba(220, 38, 38, 0.5);
+        }
+        .reload-btn {
+            background: rgba(34, 197, 94, 0.3);
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+        .reload-btn:hover {
+            background: rgba(34, 197, 94, 0.5);
+        }
+        .console-output {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .status.info {
+            background: rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+        .status.warning {
+            background: rgba(245, 158, 11, 0.3);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+        }
+        .status.success {
+            background: rgba(34, 197, 94, 0.3);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #fbbf24;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #fbbf24;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-right: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 QASD - تشخيص Service Worker</h1>
+        
+        <div class="status info">
+            📋 أداة تشخيص وإصلاح مشاكل Service Worker في وضع التطوير
+        </div>
+        
+        <div class="instructions">
+            <h3>📝 تعليمات الاستخدام:</h3>
+            <ol>
+                <li>افتح Developer Tools (F12)</li>
+                <li>انتقل إلى تبويب Console</li>
+                <li>اضغط على "تشخيص كامل" لفحص المشكلة</li>
+                <li>اضغط على "تنظيف شامل" لحل المشكلة</li>
+                <li>اضغط على "إعادة تحميل آمنة" لإعادة تشغيل التطبيق</li>
+            </ol>
+        </div>
+        
+        <div class="button-group">
+            <button onclick="runDiagnostic()">🔍 تشخيص كامل</button>
+            <button onclick="checkSW()">📋 فحص Service Workers</button>
+            <button onclick="checkCache()">💾 فحص الكاش</button>
+            <button onclick="testAPI()">🌐 اختبار API</button>
+            <button class="cleanup-btn" onclick="performCleanup()">🧹 تنظيف شامل</button>
+            <button class="reload-btn" onclick="safeReload()">🔄 إعادة تحميل آمنة</button>
+        </div>
+        
+        <div id="status-display"></div>
+        
+        <div class="console-output" id="console-output">
+            <div style="color: #10b981;">✅ أدوات التشخيص جاهزة!</div>
+            <div style="color: #6b7280;">انقر على الأزرار أعلاه لبدء التشخيص...</div>
+        </div>
+    </div>
+    
+    <script src="debug-sw.js"></script>
+    <script>
+        // إعادة توجيه console.log إلى الواجهة
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        const outputDiv = document.getElementById('console-output');
+        const statusDiv = document.getElementById('status-display');
+        
+        function addToOutput(message, type = 'log') {
+            const div = document.createElement('div');
+            div.style.marginBottom = '5px';
+            
+            switch(type) {
+                case 'error':
+                    div.style.color = '#ef4444';
+                    break;
+                case 'warn':
+                    div.style.color = '#f59e0b';
+                    break;
+                case 'success':
+                    div.style.color = '#10b981';
+                    break;
+                default:
+                    div.style.color = '#e5e7eb';
+            }
+            
+            div.textContent = message;
+            outputDiv.appendChild(div);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToOutput(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToOutput('❌ ' + args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToOutput('⚠️ ' + args.join(' '), 'warn');
+        };
+        
+        function updateStatus(message, type = 'info') {
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        // دوال التشغيل
+        async function runDiagnostic() {
+            outputDiv.innerHTML = '';
+            updateStatus('🔍 جاري التشخيص الكامل...', 'info');
+            
+            try {
+                const result = await window.qasdDebug.fullDiagnostic();
+                
+                if (result.hasIssues) {
+                    updateStatus('⚠️ تم العثور على مشاكل - استخدم التنظيف الشامل', 'warning');
+                } else {
+                    updateStatus('✅ لا توجد مشاكل في Service Worker', 'success');
+                }
+            } catch (error) {
+                updateStatus('❌ خطأ في التشخيص', 'error');
+            }
+        }
+        
+        async function checkSW() {
+            outputDiv.innerHTML = '';
+            updateStatus('📋 فحص Service Workers...', 'info');
+            await window.qasdDebug.checkServiceWorkers();
+        }
+        
+        async function checkCache() {
+            outputDiv.innerHTML = '';
+            updateStatus('💾 فحص الكاش...', 'info');
+            await window.qasdDebug.checkCaches();
+        }
+        
+        async function testAPI() {
+            outputDiv.innerHTML = '';
+            updateStatus('🌐 اختبار الاتصال بـ API...', 'info');
+            await window.qasdDebug.testAPIConnection();
+        }
+        
+        async function performCleanup() {
+            if (!confirm('هل أنت متأكد من التنظيف الشامل؟ سيتم حذف جميع البيانات المحفوظة محلياً.')) {
+                return;
+            }
+            
+            outputDiv.innerHTML = '';
+            updateStatus('🧹 جاري التنظيف الشامل...', 'warning');
+            
+            try {
+                const result = await window.qasdDebug.performCleanup();
+                updateStatus('✅ تم التنظيف بنجاح - يمكنك الآن إعادة التحميل', 'success');
+            } catch (error) {
+                updateStatus('❌ خطأ في التنظيف', 'error');
+            }
+        }
+        
+        function safeReload() {
+            updateStatus('🔄 إعادة تحميل الصفحة...', 'info');
+            window.qasdDebug.safeReload();
+        }
+        
+        // تشغيل التشخيص تلقائياً عند تحميل الصفحة
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                runDiagnostic();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

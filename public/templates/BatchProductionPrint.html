@@ -1,0 +1,681 @@
+
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل الإنتاج الدفعي - قالب الطباعة</title>
+    <style>
+        /* CSS Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            direction: rtl;
+            background: white;
+        }
+
+        /* Print Styles */
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+            .avoid-break { page-break-inside: avoid; }
+            .footer { position: fixed !important; bottom: 0 !important; }
+            .watermark { display: none !important; }
+        }
+
+        /* A4 Paper Size Layout */
+        .document {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 15mm;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        /* A5 Paper Size (Alternative) */
+        .document.a5 {
+            width: 148mm;
+            min-height: 210mm;
+            padding: 10mm;
+            font-size: 10px;
+        }
+
+        /* Header Section */
+        .header {
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .company-info {
+            flex: 1;
+            text-align: center;
+            margin: 0 20px;
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .company-name-en {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .document-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2563eb;
+            background: #eff6ff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .header-meta {
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .header-meta div {
+            margin-bottom: 3px;
+        }
+
+        /* Form Content */
+        .form-content {
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            break-inside: avoid;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-icon {
+            width: 16px;
+            height: 16px;
+            margin-left: 8px;
+            background: #2563eb;
+            border-radius: 3px;
+        }
+
+        /* Field Groups */
+        .field-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .field {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .field-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .field-value {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 8px 12px;
+            background: #f9fafb;
+            min-height: 30px;
+            font-size: 12px;
+        }
+
+        .field-value.empty {
+            background: white;
+            border-style: dashed;
+            color: #9ca3af;
+        }
+
+        /* Materials Table */
+        .materials-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .materials-table th,
+        .materials-table td {
+            border: 1px solid #374151;
+            padding: 8px;
+            text-align: right;
+            font-size: 11px;
+        }
+
+        .materials-table th {
+            background: #f3f4f6;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .materials-table .total-row {
+            background: #eff6ff;
+            font-weight: bold;
+        }
+
+        .materials-table .total-row td {
+            border-top: 2px solid #2563eb;
+        }
+
+        /* Status Indicators */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        /* Signature Section */
+        .signature-section {
+            margin-top: 40px;
+            break-inside: avoid;
+        }
+
+        .signature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .signature-box {
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 2px solid #374151;
+            margin-top: 30px;
+            padding-top: 8px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            margin-top: 5px;
+            color: #374151;
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+            font-size: 10px;
+            color: #6b7280;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            z-index: 10;
+        }
+
+        .footer-left {
+            text-align: right;
+        }
+
+        .footer-right {
+            text-align: left;
+        }
+
+        /* QR Code Placeholder */
+        .qr-code {
+            width: 60px;
+            height: 60px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: #9ca3af;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 60px;
+            color: rgba(37, 99, 235, 0.03);
+            font-weight: bold;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Notes Section */
+        .notes-section {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 15px;
+            background: #fafafa;
+            margin: 20px 0;
+        }
+
+        .notes-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        /* Print Button (No Print) */
+        .print-controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .print-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 2px;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .print-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .print-btn:active {
+            background: #1e40af;
+            transform: translateY(1px);
+        }
+
+        /* Responsive Adjustments */
+        @media screen and (max-width: 768px) {
+            .document {
+                width: 100%;
+                padding: 10px;
+                box-shadow: none;
+            }
+            
+            .field-group {
+                flex-direction: column;
+            }
+            
+            .signature-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Print Controls (Hidden in Print) -->
+    <div class="print-controls no-print">
+        <button class="print-btn" onclick="printDocument()">🖨️ طباعة</button>
+        <button class="print-btn" onclick="downloadAsPDF()">📄 طباعة نافذة جديدة</button>
+        <button class="print-btn" onclick="togglePaperSize()">📄 A4/A5</button>
+        <button class="print-btn" onclick="window.close()">❌ إغلاق</button>
+        <div style="margin-top: 5px; font-size: 10px; color: #666;">
+            أو اضغط Ctrl+P للطباعة المباشرة
+        </div>
+    </div>
+
+    <!-- Document Container -->
+    <div class="document" id="document">
+        <!-- Watermark -->
+        <div class="watermark">مصنع النموذج</div>
+
+        <!-- Header Section -->
+        <header class="header">
+            <div class="header-meta">
+                <div><strong>رقم المستند:</strong> BP-2024-001</div>
+                <div><strong>التاريخ:</strong> ١٤٤٦/٣/١٥ هـ</div>
+                <div><strong>الوقت:</strong> ١٠:٣٠ ص</div>
+            </div>
+
+            <div class="header-top">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiByeD0iOCIgZmlsbD0iIzI1NjNlYiIvPgo8dGV4dCB4PSI0MCIgeT0iNDUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5NRJY8L3RleHQ+Cjwvc3ZnPgo=" 
+                     alt="شعار الشركة" class="company-logo">
+
+                <div class="company-info">
+                    <div class="company-name">مصنع النموذج للصناعات الدوائية</div>
+                    <div class="company-name-en">Model Factory for Pharmaceutical Industries</div>
+                    <div class="document-title">سجل الإنتاج الدفعي</div>
+                </div>
+
+                <div class="qr-code">
+                    QR CODE
+                </div>
+            </div>
+        </header>
+
+        <!-- Form Content -->
+        <main class="form-content" style="margin-bottom: 80px;">
+            <!-- Product Information Section -->
+            <section class="section">
+                <h2 class="section-title">
+                    <div class="section-icon"></div>
+                    معلومات المنتج
+                </h2>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="field-label">اسم المنتج *</div>
+                        <div class="field-value">كريم مرطب للبشرة الحساسة</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">رقم الدفعة *</div>
+                        <div class="field-value">BP-2024-001-CR</div>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="field-label">تاريخ الإنتاج *</div>
+                        <div class="field-value">٢٠٢٤/٠١/١٥</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">تاريخ انتهاء الصلاحية *</div>
+                        <div class="field-value">٢٠٢٦/٠١/١٥</div>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="field-label">الكمية المنتجة *</div>
+                        <div class="field-value">١٠٠٠ قطعة</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">حالة التطابق</div>
+                        <div class="field-value">
+                            <span class="status-badge status-success">✓ متطابقة</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Personnel Information Section -->
+            <section class="section">
+                <h2 class="section-title">
+                    <div class="section-icon"></div>
+                    معلومات الموظفين
+                </h2>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="field-label">اسم المشغل *</div>
+                        <div class="field-value">أحمد محمد العلي</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">اسم المشرف *</div>
+                        <div class="field-value">د. فاطمة أحمد</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Raw Materials Section -->
+            <section class="section">
+                <h2 class="section-title">
+                    <div class="section-icon"></div>
+                    جدول المواد الخام
+                </h2>
+                <table class="materials-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 35%">اسم المادة</th>
+                            <th style="width: 15%">الكمية</th>
+                            <th style="width: 15%">الوحدة</th>
+                            <th style="width: 20%">رقم الدفعة</th>
+                            <th style="width: 15%">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>زيت الجوجوبا النقي</td>
+                            <td>٢٥٠</td>
+                            <td>مليلتر</td>
+                            <td>JOJ-2024-001</td>
+                            <td><span class="status-badge status-success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>زبدة الشيا الطبيعية</td>
+                            <td>١٥٠</td>
+                            <td>جرام</td>
+                            <td>SHE-2024-002</td>
+                            <td><span class="status-badge status-success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>فيتامين E</td>
+                            <td>٢٠</td>
+                            <td>جرام</td>
+                            <td>VIT-2024-003</td>
+                            <td><span class="status-badge status-success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>ماء مقطر</td>
+                            <td>٣٠٠</td>
+                            <td>مليلتر</td>
+                            <td>WAT-2024-004</td>
+                            <td><span class="status-badge status-success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td>مادة حافظة طبيعية</td>
+                            <td>٥</td>
+                            <td>جرام</td>
+                            <td>PRE-2024-005</td>
+                            <td><span class="status-badge status-success">✓</span></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>إجمالي الكمية</strong></td>
+                            <td><strong>٧٢٥</strong></td>
+                            <td>وحدة مختلطة</td>
+                            <td colspan="2">
+                                <span class="status-badge status-success">✓ متطابقة مع الكمية المنتجة</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Notes Section -->
+            <section class="section">
+                <div class="notes-section">
+                    <div class="notes-title">ملاحظات الإنتاج:</div>
+                    <div>تم الإنتاج وفقاً لمعايير ISO 22716 مع مراعاة جميع إجراءات النظافة والسلامة. تم فحص جودة المواد الخام قبل الاستخدام والتأكد من مطابقتها للمواصفات المطلوبة. درجة الحرارة والرطوبة كانت ضمن الحدود المسموحة طوال فترة الإنتاج.</div>
+                </div>
+            </section>
+
+            <!-- Signature Section -->
+            <section class="signature-section">
+                <h2 class="section-title">
+                    <div class="section-icon"></div>
+                    التواقيع والاعتمادات
+                </h2>
+                <div class="signature-grid">
+                    <div class="signature-box">
+                        <div class="signature-line">
+                            توقيع المشغل
+                        </div>
+                        <div class="signature-name">أحمد محمد العلي</div>
+                        <div style="font-size: 10px; color: #6b7280; margin-top: 3px;">
+                            التاريخ: ٢٠٢٤/٠١/١٥ - الوقت: ١٠:٣٠ ص
+                        </div>
+                    </div>
+                    <div class="signature-box">
+                        <div class="signature-line">
+                            توقيع المشرف المعتمد
+                        </div>
+                        <div class="signature-name">د. فاطمة أحمد</div>
+                        <div style="font-size: 10px; color: #6b7280; margin-top: 3px;">
+                            التاريخ: ٢٠٢٤/٠١/١٥ - الوقت: ١١:٠٠ ص
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-left">
+                <div><strong>مصنع النموذج للصناعات الدوائية</strong></div>
+                <div>ص.ب ١٢٣٤٥، الرياض ١١٤١١، المملكة العربية السعودية</div>
+                <div>هاتف: ٠١١-٤٥٦٧٨٩٠ | الرقم الضريبي: ٣٠٠٠٠٠٠٠٠٠٠٠٠٠٣</div>
+            </div>
+            <div class="footer-right">
+                <div>Model Factory for Pharmaceutical Industries</div>
+                <div>P.O. Box 12345, Riyadh 11411, Saudi Arabia</div>
+                <div>ISO 22716 Certified | CR: 1010000000</div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Toggle between A4 and A5 paper sizes
+        function togglePaperSize() {
+            const doc = document.getElementById('document');
+            doc.classList.toggle('a5');
+            
+            // Update print button text
+            const btn = event.target;
+            btn.textContent = doc.classList.contains('a5') ? '📄 A5 → A4' : '📄 A4 → A5';
+        }
+
+        // Enhanced print function with error handling
+        function printDocument() {
+            try {
+                // Check if printing is supported
+                if (window.print) {
+                    window.print();
+                } else {
+                    alert('الطباعة غير مدعومة في هذا المتصفح');
+                }
+            } catch (error) {
+                console.error('Print error:', error);
+                alert('حدث خطأ في الطباعة. جرب Ctrl+P');
+            }
+        }
+
+        // Alternative: Create PDF-friendly version
+        function downloadAsPDF() {
+            try {
+                // Hide print controls
+                const controls = document.querySelector('.print-controls');
+                if (controls) controls.style.display = 'none';
+                
+                // Open in new window for better printing
+                const printWindow = window.open('', '_blank', 'width=800,height=600');
+                const htmlContent = `
+                    <!DOCTYPE html>
+                    <html dir="rtl" lang="ar">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>سجل الإنتاج الدفعي</title>
+                        <style>${document.querySelector('style').innerHTML}</style>
+                    </head>
+                    <body>
+                        ${document.querySelector('.document').outerHTML}
+                    </body>
+                    </html>
+                `;
+                
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
+                
+                // Auto print after loading
+                printWindow.onload = function() {
+                    printWindow.print();
+                    // Close after printing (optional)
+                    setTimeout(() => printWindow.close(), 1000);
+                };
+                
+                // Show controls again
+                if (controls) controls.style.display = 'block';
+                
+            } catch (error) {
+                console.error('PDF creation error:', error);
+                alert('حدث خطأ في إنشاء PDF');
+            }
+        }
+
+        // Add keyboard shortcut for printing
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                printDocument();
+            }
+        });
+    </script>
+</body>
+</html>
